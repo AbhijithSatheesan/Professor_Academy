@@ -28,3 +28,41 @@ def CollegeCategories(request):
     serializer = CategorySerializer(categories, many = True)
     
     return Response(serializer.data)
+
+
+
+@api_view(['GET'])
+def category_subcategories(request, category_id):
+    category = Category.objects.get(id=category_id)
+    serializer = CategorySerializer(category)
+    return Response(serializer.data)
+
+
+# sample data 
+# http://localhost:8000/api/colleges/category/3/subcategories/
+
+
+@api_view(['GET'])
+def College_subcategories(request, subcategory_id):
+    try:
+        subcategory = Subcategory.objects.get(id=subcategory_id)
+        colleges = Colleges.objects.filter(parent_subcategory=subcategory)
+        serializer = CollegeSerializer(colleges, many=True)
+        return Response(serializer.data)
+    except Subcategory.DoesNotExist:
+        return Response({'error': 'Subcategory not found'}, status=404)
+
+
+
+
+
+# @api_view(['GET'])
+# def College_subcategories(request, subcategory_id):
+#     try:
+#         subcategory = Subcategory.objects.get(id= subcategory_id)
+#         colleges = Colleges.objects.filter(Parent_subcategory = subcategory)
+#         serializer = SubcategorySerializer(colleges, many= True)
+#         return Response(serializer.data)
+    
+#     except: Subcategory.DoesNotExist:
+#         return Response({'error':'Subcategory not found'}, status=404)

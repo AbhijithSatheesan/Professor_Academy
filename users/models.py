@@ -16,6 +16,7 @@ class MyUsers(AbstractUser):
 class MarkedColleges(models.Model):
     student = models.ForeignKey(MyUsers, on_delete=models.CASCADE, null= True, blank= True)
     marked_college= models.ForeignKey('colleges.Colleges', on_delete= models.CASCADE, null= True, blank= True)
+    fee = models.IntegerField(null= True, blank=True)
 
     def __str__(self):
         return f"{self.student.username} - {self.marked_college.name}"
