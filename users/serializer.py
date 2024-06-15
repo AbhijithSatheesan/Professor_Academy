@@ -32,4 +32,4 @@ class UserProfileSerializer(serializers.ModelSerializer):
 class MarkedCollegeSerializer(serializers.ModelSerializer):
     class Meta:
         model = MarkedColleges
-        fields = '__all__'
+        fields = ['student','marked_college','fee']

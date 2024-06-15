@@ -49,6 +49,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
         user = serializer.user
         
         marked_college_ids = list(MarkedColleges.objects.filter(student=user).values_list('marked_college_id', flat=True))
+        user_id = user.id
         
         # Retrieve the validated data (tokens)
         token = serializer.validated_data
@@ -56,6 +57,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
         # Add custom user details
         token['marked_college_ids'] = marked_college_ids
         token['image'] = user.image.url if user.image else None
+        token['user_id'] = user_id
         
         return Response(token, status=status.HTTP_200_OK)
 
@@ -97,3 +99,40 @@ class UserRegisterView(APIView):
 # }
 
 
+
+
+# MARKING COLLEGES
+
+from colleges.models import Colleges
+
+@api_view(['POST'])
+def add_marked_college(request):
+    user_id = request.data.get('user_id')
+    college_id = request.data.get('college_id')
+    fee = request.data.get('fee', None)
+    
+    if not user_id or not college_id:
+        return Response({"error": "user_id and college_id are required"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        student = MyUsers.objects.get(id=user_id)
+        college = Colleges.objects.get(id=college_id)
+    except MyUsers.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Colleges.DoesNotExist:
+        return Response({"error": "College not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    marked_college, created = MarkedColleges.objects.get_or_create(student=student, marked_college=college, defaults={'fee': fee})
+    
+    if not created:
+        return Response({"error": "Marked college already exists"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    serializer = MarkedCollegeSerializer(marked_college)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+# {
+#   "user_id": 1,
+#   "college_id": 15,
+#   "fee": 5000
+# }
