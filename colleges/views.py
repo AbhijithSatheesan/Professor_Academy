@@ -76,3 +76,17 @@ def College_subcategories(request, subcategory_id):
     
 #     except: Subcategory.DoesNotExist:
 #         return Response({'error':'Subcategory not found'}, status=404)
+
+
+
+
+
+
+
+
+
+
+
+
+
+

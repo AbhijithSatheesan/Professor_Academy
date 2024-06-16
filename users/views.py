@@ -48,19 +48,16 @@ class MyTokenObtainPairView(TokenObtainPairView):
         
         user = serializer.user
         
-        # marked_college_ids = list(MarkedColleges.objects.filter(student=user).values_list('marked_college_id', flat=True))
+        marked_college_ids = list(MarkedColleges.objects.filter(student=user).values_list('marked_college_id', flat=True))
         user_id = user.id
-        marked_colleges = list(user.marked_colleges.values_list('id', flat=True))
-        
         
         # Retrieve the validated data (tokens)
         token = serializer.validated_data
         
         # Add custom user details
-        # token['marked_college_ids'] = marked_college_ids
+        token['marked_college_ids'] = marked_college_ids
         token['image'] = user.image.url if user.image else None
         token['user_id'] = user_id
-        token['marked_colleges'] = marked_colleges
         
         return Response(token, status=status.HTTP_200_OK)
 
@@ -128,8 +125,11 @@ def add_marked_college(request):
     marked_college, created = MarkedColleges.objects.get_or_create(student=student, marked_college=college, defaults={'fee': fee})
     
     if not created:
-        return Response({"error": "Marked college already exists"}, status=status.HTTP_400_BAD_REQUEST)
+        # If the entry already exists, delete it (unlike)
+        marked_college.delete()
+        return Response({"message": "Marked college removed"}, status=status.HTTP_200_OK)
     
+    # If the entry was created, return the new marked college
     serializer = MarkedCollegeSerializer(marked_college)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 

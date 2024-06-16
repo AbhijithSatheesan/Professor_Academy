@@ -29,7 +29,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 # MARKED COLLEGES
-# class MarkedCollegeSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = MarkedColleges
-#         fields = ['student','marked_college','fee']
+class MarkedCollegeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MarkedColleges
+        fields = ['student','marked_college','fee']
