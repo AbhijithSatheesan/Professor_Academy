@@ -48,16 +48,19 @@ class MyTokenObtainPairView(TokenObtainPairView):
         
         user = serializer.user
         
-        marked_college_ids = list(MarkedColleges.objects.filter(student=user).values_list('marked_college_id', flat=True))
+        # marked_college_ids = list(MarkedColleges.objects.filter(student=user).values_list('marked_college_id', flat=True))
         user_id = user.id
+        marked_colleges = list(user.marked_colleges.values_list('id', flat=True))
+        
         
         # Retrieve the validated data (tokens)
         token = serializer.validated_data
         
         # Add custom user details
-        token['marked_college_ids'] = marked_college_ids
+        # token['marked_college_ids'] = marked_college_ids
         token['image'] = user.image.url if user.image else None
         token['user_id'] = user_id
+        token['marked_colleges'] = marked_colleges
         
         return Response(token, status=status.HTTP_200_OK)
 

@@ -5,4 +5,4 @@ from .models import *
 
 
 admin.site.register(MyUsers)
-admin.site.register(MarkedColleges)
+# admin.site.register(MarkedColleges)
