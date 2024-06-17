@@ -5,13 +5,20 @@ from django.contrib.auth.models import User,AbstractUser
 
 # Create your models here.
 
+
+
+class UserType(models.TextChoices):
+    STUDENT = 'student', 'Student'
+    STAFF = 'staff', 'Staff'
+    ADMIN = 'admin', 'Admin'
+
 class MyUsers(AbstractUser):
-    email = models.EmailField(unique= True)
-    image = models.ImageField(blank= True, null= True)  
+    email = models.EmailField(unique=True)
+    image = models.ImageField(blank=True, null=True)
+    user_type = models.CharField(max_length=10, choices=UserType.choices, default=UserType.STUDENT)
 
     def __str__(self):
         return self.username
-    
 
 class MarkedColleges(models.Model):
     student = models.ForeignKey(MyUsers, on_delete=models.CASCADE, null= True, blank= True)

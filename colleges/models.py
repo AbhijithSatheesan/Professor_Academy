@@ -10,6 +10,7 @@ class Colleges(models.Model):
     category = models.ForeignKey('Category', on_delete=models.CASCADE, null=True, blank=True)
     parent_subcategories = models.ManyToManyField('Subcategory', blank=True)  # Changed to ManyToManyField
     courses = models.CharField(max_length=400, null=True, blank=True)
+    location = models.CharField(max_length= 25, null= True, blank= True)
     priority = models.IntegerField(blank=True, null=True, default=1)
     main_image = models.ImageField(null=True, blank=True)
     hostel_image = models.ImageField(null=True, blank=True)

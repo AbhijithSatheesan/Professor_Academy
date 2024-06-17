@@ -14,6 +14,7 @@ from .models import *
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.contrib.auth import get_user_model
 
 # Create your views here.
 
@@ -64,11 +65,53 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 # USERDETAILS
 
-@api_view(['GET'])
-def GetUserProfile(request):
-    user = request.user
-    serializer = UserProfileSerializer(user, many = False)
-    return Response(serializer.data)
+class UserProfile(APIView):
+    def get(self, request, pk):
+        User = get_user_model()
+        try:
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)
+
+        user_details = {
+            'username': user.username,
+            'email': user.email,
+            'image': user.image.url if user.image else None,
+            'user_type': user.user_type,
+            'marked_colleges': []
+        }
+
+        marked_colleges = MarkedColleges.objects.filter(student=user)
+        for marked_college in marked_colleges:
+            college = marked_college.marked_college
+            user_details['marked_colleges'].append({
+                'college_id': college.id,
+                'college_name': college.name,
+                'category': college.category.name if college.category else None,
+                'parent_subcategories': [subcategory.name for subcategory in college.parent_subcategories.all()],
+                'courses': college.courses,
+                'location': college.location,
+                'priority': college.priority,
+                'main_image': college.main_image.url if college.main_image else None,
+                'hostel_image': college.hostel_image.url if college.hostel_image else None,
+                'library_image': college.library_image.url if college.library_image else None,
+                'class_image': college.class_image.url if college.class_image else None,
+                'lab_image': college.lab_image.url if college.lab_image else None,
+                'other_images': college.other_images.url if college.other_images else None,
+                'fee': marked_college.fee
+            })
+
+        return Response(user_details)
+
+
+
+
+
+
+
+
+
+
 
 
 
