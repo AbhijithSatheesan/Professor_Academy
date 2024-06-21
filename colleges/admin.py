@@ -6,3 +6,4 @@ from .models import *
 admin.site.register(Colleges)
 admin.site.register(Category)
 admin.site.register(Subcategory)
+admin.site.register(OtherImage)

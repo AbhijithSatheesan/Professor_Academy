@@ -17,10 +17,17 @@ class Colleges(models.Model):
     library_image = models.ImageField(null=True, blank=True)
     class_image = models.ImageField(null=True, blank=True)
     lab_image = models.ImageField(null=True, blank=True)
-    other_images = models.ImageField(null=True, blank=True)
+   
 
     def __str__(self):
         return self.name
+    
+class OtherImage(models.Model):
+    college = models.ForeignKey(Colleges, related_name='other_images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='college_images/', null=True, blank=True)
+
+    def __str__(self):
+        return f"Image for {self.college.name}"
     
 
 class Category(models.Model):

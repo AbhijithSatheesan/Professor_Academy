@@ -51,15 +51,19 @@ class MyTokenObtainPairView(TokenObtainPairView):
         
         marked_college_ids = list(MarkedColleges.objects.filter(student=user).values_list('marked_college_id', flat=True))
         user_id = user.id
+        username = user.username
         
         # Retrieve the validated data (tokens)
         token = serializer.validated_data
         
         # Add custom user details
+        token['authenticated'] = 'True'
+        token['user_name'] = username
         token['marked_college_ids'] = marked_college_ids
         token['image'] = user.image.url if user.image else None
         token['user_id'] = user_id
         
+         
         return Response(token, status=status.HTTP_200_OK)
 
 
@@ -92,12 +96,7 @@ class UserProfile(APIView):
                 'courses': college.courses,
                 'location': college.location,
                 'priority': college.priority,
-                'main_image': college.main_image.url if college.main_image else None,
-                'hostel_image': college.hostel_image.url if college.hostel_image else None,
-                'library_image': college.library_image.url if college.library_image else None,
-                'class_image': college.class_image.url if college.class_image else None,
-                'lab_image': college.lab_image.url if college.lab_image else None,
-                'other_images': college.other_images.url if college.other_images else None,
+                'main_image': college.main_image.url if college.main_image else None, 
                 'fee': marked_college.fee
             })
 

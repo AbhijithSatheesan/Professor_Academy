@@ -9,18 +9,7 @@ from .models import *
 
 # Create your views here.
 
-def Index(request):
-    return HttpResponse('Start')
-
-
-@api_view(['GET'])
-def Showcolleges(request):
-    colleges = Colleges.objects.all()
-    serializer = CollegeSerializer(colleges, many= True)
-
-    return Response(serializer.data)
-
-
+# CATEGORY
 
 @api_view(['GET'])
 def CollegeCategories(request):
@@ -30,12 +19,7 @@ def CollegeCategories(request):
     return Response(serializer.data)
 
 
-
-# @api_view(['GET'])
-# def category_subcategories(request, category_id):
-#     category = Category.objects.get(id=category_id)
-#     serializer = CategorySerializer(category)
-#     return Response(serializer.data)
+# SUBCATEGORY
 
 
 @api_view(['GET'])
@@ -52,30 +36,35 @@ def category_subcategories(request, category_id):
 # http://localhost:8000/api/colleges/category/3/subcategories/
 
 
+# COLLEGELIST
+
 @api_view(['GET'])
-def College_subcategories(request, subcategory_id):
+def College_subcategories_list(request, subcategory_id):
     try:
         subcategory = Subcategory.objects.get(id=subcategory_id)
         colleges = Colleges.objects.filter(parent_subcategories=subcategory)
-        serializer = CollegeSerializer(colleges, many=True)
+        serializer = CollegeListSerializer(colleges, many=True)
         return Response(serializer.data)
     except Subcategory.DoesNotExist:
-        return Response({'Subcategory not found'}, status=404)
+        return Response({'error': 'Subcategory not found'}, status=404)
+
+
+
+# COLLEGE PAGE
+
+@api_view(['GET'])
+def college_detail(request, college_id):
+    try:
+        college = Colleges.objects.get(id=college_id)
+        serializer = CollegeSerializer(college)
+        return Response(serializer.data)
+    except Colleges.DoesNotExist:
+        return Response({'error': 'College not found'}, status=404)
 
 
 
 
 
-# @api_view(['GET'])
-# def College_subcategories(request, subcategory_id):
-#     try:
-#         subcategory = Subcategory.objects.get(id= subcategory_id)
-#         colleges = Colleges.objects.filter(Parent_subcategory = subcategory)
-#         serializer = SubcategorySerializer(colleges, many= True)
-#         return Response(serializer.data)
-    
-#     except: Subcategory.DoesNotExist:
-#         return Response({'error':'Subcategory not found'}, status=404)
 
 
 
