@@ -8,6 +8,9 @@ from django.db import models
 class Colleges(models.Model):
     name = models.CharField(max_length=100)
     category = models.ForeignKey('Category', on_delete=models.CASCADE, null=True, blank=True)
+
+    # use it when get a chance to clear database
+    # category = models.ManyToManyField('Category', related_name='colleges', blank=True)
     parent_subcategories = models.ManyToManyField('Subcategory', blank=True)  # Changed to ManyToManyField
     courses = models.CharField(max_length=400, null=True, blank=True)
     location = models.CharField(max_length= 25, null= True, blank= True)
