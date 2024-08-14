@@ -21,7 +21,7 @@ class MyUsers(AbstractUser):
         return self.username
 
 class MarkedColleges(models.Model):
-    student = models.ForeignKey(MyUsers, on_delete=models.CASCADE, null= True, blank= True)
+    student = models.ForeignKey(MyUsers, on_delete=models.CASCADE, null= True, blank= True, related_name= 'marked_colleges')
     marked_college= models.ForeignKey('colleges.Colleges', on_delete= models.CASCADE, null= True, blank= True)
     fee = models.IntegerField(null= True, blank=True)
 

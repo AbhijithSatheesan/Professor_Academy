@@ -52,3 +52,41 @@ class AdminUsersListSerializer(serializers.ModelSerializer):
     class Meta:
         model = MyUsers
         fields = ['id', 'username', 'image', 'user_type']
+
+
+
+# Edit user
+
+
+class AdminMarkedCollegeSerializer(serializers.ModelSerializer):
+    college_name = serializers.CharField(source='marked_college.name', read_only=True)
+
+    class Meta:
+        model = MarkedColleges
+        fields = ['id', 'college_name', 'fee']
+
+class AdminUserEditSerializer(serializers.ModelSerializer):
+    marked_colleges = AdminMarkedCollegeSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = MyUsers
+        fields = ['id', 'username', 'email', 'user_type', 'image', 'marked_colleges']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['marked_colleges'] = AdminMarkedCollegeSerializer(instance.marked_colleges.all(), many=True).data
+        return representation
+    
+
+
+    # i used a seperate serializer and view to update fee
+
+class AdminUpdateMarkedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MarkedColleges
+        fields = ['id', 'fee']
+
+    def update(self, instance, validated_data):
+        instance.fee = validated_data.get('fee', instance.fee)
+        instance.save()
+        return instance

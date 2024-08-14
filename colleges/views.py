@@ -217,6 +217,42 @@ class CollegeDetailEditView(APIView):
 
 
 
+# SEARCH COLLEGE
+
+from django.db import connection
+from django.db.models import Q
+from django.http import JsonResponse
 
 
+def search_colleges(request):
+    query = request.GET.get('query', '')
+    if not query:
+        return JsonResponse({'error': 'No search query provided.'}, status=400)
 
+    # Check the database vendor
+    if connection.vendor == 'postgresql':
+        # PostgreSQL-specific full-text search
+        from django.contrib.postgres.search import TrigramSimilarity
+        colleges = Colleges.objects.annotate(
+            similarity=TrigramSimilarity('name', query) + TrigramSimilarity('courses', query)
+        ).filter(similarity__gt=0.3).order_by('-similarity')
+    else:
+        # Fallback for SQLite (or other databases)
+        colleges = Colleges.objects.filter(
+            Q(name__icontains=query) |
+            Q(courses__icontains=query)
+        )
+
+    # Adjust how the results are formatted, especially for the main_image field
+    results = [
+        {
+            'id': college.id,
+            'name': college.name,
+            'location': college.location,
+            'main_image': college.main_image.url if college.main_image else None,
+            'priority': college.priority,
+        }
+        for college in colleges
+    ]
+
+    return JsonResponse(results, safe=False)
