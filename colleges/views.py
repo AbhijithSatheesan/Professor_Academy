@@ -14,6 +14,10 @@ from rest_framework.decorators import api_view,permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import status,generics
 
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+
+
+
 # Create your views here.
 
 # CATEGORY
@@ -71,6 +75,58 @@ def college_detail(request, college_id):
         return Response(serializer.data)
     except Colleges.DoesNotExist:
         return Response({'error': 'College not found'}, status=404)
+    
+
+
+
+
+
+
+# SEARCH COLLEGE
+
+# http://localhost:8000/api/colleges/searchcollege/?query=2
+
+from django.db import connection
+from django.db.models import Q
+from django.http import JsonResponse
+
+
+def search_colleges(request):
+    query = request.GET.get('query', '')
+    if not query:
+        return JsonResponse({'error': 'No search query provided.'}, status=400)
+
+    # Check the database vendor
+    if connection.vendor == 'postgresql':
+        # PostgreSQL-specific full-text search
+        from django.contrib.postgres.search import TrigramSimilarity
+        colleges = Colleges.objects.annotate(
+            similarity=TrigramSimilarity('name', query) + TrigramSimilarity('courses', query)
+        ).filter(similarity__gt=0.3).order_by('-similarity')
+    else:
+        # Fallback for SQLite (or other databases)
+        colleges = Colleges.objects.filter(
+            Q(name__icontains=query) |
+            Q(courses__icontains=query)
+        )
+
+    # Adjust how the results are formatted, especially for the main_image field
+    results = [
+        {
+            'id': college.id,
+            'name': college.name,
+            'location': college.location,
+            'main_image': college.main_image.url if college.main_image else None,
+            'priority': college.priority,
+        }
+        for college in colleges
+    ]
+
+    return JsonResponse(results, safe=False)
+
+
+
+
 
 
 
@@ -79,6 +135,7 @@ def college_detail(request, college_id):
 
 # Add college
 
+@permission_classes([IsAdminUser])
 @api_view(['POST'])
 def add_college(request):
     serializer = AddCollegeSerializer(data=request.data)
@@ -97,7 +154,10 @@ class AdminSubcategoryListView(generics.ListAPIView):
 
 # Add category/subcategory
 
+
 class CategorySubcategoryView(APIView):
+    permission_classes = [IsAdminUser]
+
     def post(self, request):
         data = request.data
         if data.get('type') == 'category':
@@ -124,6 +184,8 @@ class CategorySubcategoryView(APIView):
 from rest_framework.parsers import MultiPartParser, FormParser
 
 class AdminEditCollegeView(APIView):
+    permission_classes = [IsAdminUser]
+
     parser_classes = (MultiPartParser, FormParser)
 
     def put(self, request, pk):
@@ -160,6 +222,8 @@ class DeleteOtherImageView(APIView):
 
 
 class CollegeDetailEditView(APIView):
+    permission_classes = [IsAdminUser]
+
     def get(self, request, pk):
         college = get_object_or_404(Colleges, pk=pk)
         serializer = CollegeSerializer(college)
@@ -217,42 +281,3 @@ class CollegeDetailEditView(APIView):
 
 
 
-# SEARCH COLLEGE
-
-from django.db import connection
-from django.db.models import Q
-from django.http import JsonResponse
-
-
-def search_colleges(request):
-    query = request.GET.get('query', '')
-    if not query:
-        return JsonResponse({'error': 'No search query provided.'}, status=400)
-
-    # Check the database vendor
-    if connection.vendor == 'postgresql':
-        # PostgreSQL-specific full-text search
-        from django.contrib.postgres.search import TrigramSimilarity
-        colleges = Colleges.objects.annotate(
-            similarity=TrigramSimilarity('name', query) + TrigramSimilarity('courses', query)
-        ).filter(similarity__gt=0.3).order_by('-similarity')
-    else:
-        # Fallback for SQLite (or other databases)
-        colleges = Colleges.objects.filter(
-            Q(name__icontains=query) |
-            Q(courses__icontains=query)
-        )
-
-    # Adjust how the results are formatted, especially for the main_image field
-    results = [
-        {
-            'id': college.id,
-            'name': college.name,
-            'location': college.location,
-            'main_image': college.main_image.url if college.main_image else None,
-            'priority': college.priority,
-        }
-        for college in colleges
-    ]
-
-    return JsonResponse(results, safe=False)

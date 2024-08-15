@@ -10,19 +10,24 @@ from .models import *
 User = get_user_model() # Use this for more flexibility
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(required=False)
+
     class Meta:
         model = User
-        fields = ('username', 'email', 'password', 'user_type','image')
+        fields = ('username', 'email', 'password', 'user_type', 'image')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
+        image = validated_data.pop('image', None)
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
-            image=validated_data['image'],
             password=validated_data['password'],
             user_type=validated_data['user_type']
         )
+        if image:
+            user.image = image
+            user.save()
         return user
 
 

@@ -16,10 +16,13 @@ urlpatterns = [
     path('adduser/', UserRegisterView.as_view(), name='adduser'),
     path('profile/<int:pk>/', UserProfile.as_view() , name= 'userprofile'),
     path('markcollege/', add_marked_college, name='markcollege'),
-    path('userslist', UsersList, name= 'userslist'),
+    
+
+    
     path('stats', UserAndCollegeStats, name='stats'),
     
     # admin
+    path('userslist', UsersList, name= 'userslist'),
     path('admin-users/<int:user_id>/', AdminEditUserView.as_view(), name='admin-edit-user'),
     path('admin-users/<int:user_id>/update-marked-college/', AdminUpdateMarked.as_view(), name='admin-update-marked-college'),
     path('admin-users/<int:user_id>/add-marked-college/', AdminAddMarkedCollegeView.as_view(), name='admin-add-marked-college'),

@@ -19,6 +19,12 @@ from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
 
+from rest_framework.decorators import api_view
+
+from django.db.models import Q
+
+
+
 
 
 # Create your views here.
@@ -81,7 +87,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 
 # USERDETAILS
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])   # for function based view use this decorator
 class UserProfile(APIView):
     def get(self, request, pk):
         User = get_user_model()
@@ -133,7 +139,8 @@ def Index(request):
 
 from colleges.models import Colleges
 
-@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@api_view(['POST'])                                     # this decorator should be closest to view
 def add_marked_college(request):
     user_id = request.data.get('user_id')
     college_id = request.data.get('college_id')
@@ -176,6 +183,7 @@ def add_marked_college(request):
 
 from django.apps import apps
 
+@permission_classes([IsAdminUser])
 @api_view(['GET'])
 def UserAndCollegeStats(request):
     user_stats = MyUsers.objects.values('user_type').annotate(count=Count('id'))
@@ -203,20 +211,31 @@ def UserAndCollegeStats(request):
 
 # userlist
 
+
+@permission_classes([IsAdminUser])
 @api_view(['GET'])
 def UsersList(request):
+   
+    search_term = request.query_params.get('search', '')
     
-    students = MyUsers.objects.filter(user_type = UserType.STUDENT).order_by('username')
-    admin = MyUsers.objects.filter(user_type = UserType.ADMIN).order_by('username')
+    students = MyUsers.objects.filter(
+        Q(user_type=UserType.STUDENT) &
+        (Q(username__icontains=search_term) | Q(email__icontains=search_term))
+    ).order_by('username')
+    
+    admin = MyUsers.objects.filter(
+        Q(user_type=UserType.ADMIN) &
+        (Q(username__icontains=search_term) | Q(email__icontains=search_term))
+    ).order_by('username')
 
-    student_serializer = AdminUsersListSerializer(students, many= True)
-    admin_serializer = AdminUsersListSerializer(admin, many = True)
+    student_serializer = AdminUsersListSerializer(students, many=True)
+    admin_serializer = AdminUsersListSerializer(admin, many=True)
 
     return Response({
         'admins': admin_serializer.data,
         'students': student_serializer.data
-        
     })
+
 
 
 
@@ -254,25 +273,25 @@ class UserRegisterView(APIView):
 
 
 
-# Register on  Admin
-class AdminRegisterView(APIView):
-    def post(self, request, *args, **kwargs):
-        print(request.data)  # For debugging
-        serializer = UserRegistrationSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            # Check if the user type is admin and add privileges
-            if user.user_type == UserType.ADMIN:
-                user.is_staff = True
-                user.is_superuser = True
-                user.save()
-                # Optional: Add the user to the admin group if you have one
-                # admin_group, created = Group.objects.get_or_create(name='Admins')
-                # admin_group.user_set.add(user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            print(serializer.errors)  # For debugging
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# # Register on  Admin   
+# class AdminRegisterView(APIView):
+#     def post(self, request, *args, **kwargs):
+#         print(request.data)  # For debugging
+#         serializer = UserRegistrationSerializer(data=request.data)
+#         if serializer.is_valid():
+#             user = serializer.save()
+#             # Check if the user type is admin and add privileges
+#             if user.user_type == UserType.ADMIN:
+#                 user.is_staff = True
+#                 user.is_superuser = True
+#                 user.save()
+#                 # Optional: Add the user to the admin group if you have one
+#                 # admin_group, created = Group.objects.get_or_create(name='Admins')
+#                 # admin_group.user_set.add(user)
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         else:
+#             print(serializer.errors)  # For debugging
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 
 
@@ -281,6 +300,8 @@ class AdminRegisterView(APIView):
 
 
 class AdminEditUserView(APIView):
+    permission_classes = [IsAdminUser]
+
     def get(self, request, user_id):
         user = get_object_or_404(MyUsers.objects.prefetch_related('marked_colleges'), id=user_id)
         serializer = AdminUserEditSerializer(user)
@@ -299,7 +320,12 @@ class AdminEditUserView(APIView):
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
+# UPDATE MARKED COLLEGES (NOT IN USE)
+
 class AdminUpdateMarkedCollegeView(APIView):
+    permission_classes = [IsAdminUser]
+    
     def post(self, request, user_id):
         user = get_object_or_404(MyUsers, id=user_id)
         college_id = request.data.get('college_id')
@@ -312,7 +338,12 @@ class AdminUpdateMarkedCollegeView(APIView):
         except MarkedColleges.DoesNotExist:
             return Response({'status': 'marked college not found'}, status=status.HTTP_404_NOT_FOUND)
 
+
+# ADMIN ADD MARKED COLLEGE (NOT IN USE)
+
 class AdminAddMarkedCollegeView(APIView):
+    permission_classes = [IsAdminUser]
+
     def post(self, request, user_id):
         user = get_object_or_404(MyUsers, id=user_id)
         college_id = request.data.get('college_id')
@@ -328,6 +359,7 @@ class AdminAddMarkedCollegeView(APIView):
         return Response({'status': 'marked college added/updated'})
     
 
+# UPDATE MARKED (IN USE)
 
 class AdminUpdateMarked(APIView):
     permission_classes = [IsAdminUser]
@@ -360,7 +392,7 @@ class AdminUpdateMarked(APIView):
 # PASSWORD RESET VIEW
 
 
-# views.py
+
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from django.conf import settings
