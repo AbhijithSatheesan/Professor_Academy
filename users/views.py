@@ -139,8 +139,9 @@ def Index(request):
 
 from colleges.models import Colleges
 
-@permission_classes([IsAuthenticated])
-@api_view(['POST'])                                     # this decorator should be closest to view
+
+@api_view(['POST'])  
+@permission_classes([IsAuthenticated])              #                      
 def add_marked_college(request):
     user_id = request.data.get('user_id')
     college_id = request.data.get('college_id')
@@ -183,8 +184,9 @@ def add_marked_college(request):
 
 from django.apps import apps
 
-@permission_classes([IsAdminUser])
+
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def UserAndCollegeStats(request):
     user_stats = MyUsers.objects.values('user_type').annotate(count=Count('id'))
     
@@ -212,8 +214,9 @@ def UserAndCollegeStats(request):
 # userlist
 
 
-@permission_classes([IsAdminUser])
+
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def UsersList(request):
    
     search_term = request.query_params.get('search', '')

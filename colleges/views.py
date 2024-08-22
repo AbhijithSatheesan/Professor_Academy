@@ -135,8 +135,9 @@ def search_colleges(request):
 
 # Add college
 
-@permission_classes([IsAdminUser])
+
 @api_view(['POST'])
+@permission_classes([IsAdminUser])
 def add_college(request):
     serializer = AddCollegeSerializer(data=request.data)
     if serializer.is_valid():
@@ -221,56 +222,56 @@ class DeleteOtherImageView(APIView):
 
 
 
-class CollegeDetailEditView(APIView):
-    permission_classes = [IsAdminUser]
+# class CollegeDetailEditView(APIView):
+#     permission_classes = [IsAdminUser]
 
-    def get(self, request, pk):
-        college = get_object_or_404(Colleges, pk=pk)
-        serializer = CollegeSerializer(college)
-        return Response(serializer.data)
+#     def get(self, request, pk):
+#         college = get_object_or_404(Colleges, pk=pk)
+#         serializer = CollegeSerializer(college)
+#         return Response(serializer.data)
 
-    def put(self, request, pk):
-        college = get_object_or_404(Colleges, pk=pk)
-        serializer = CollegeSerializer(college, data=request.data, partial=True)
-        if serializer.is_valid():
-            # Handle main images
-            image_fields = ['main_image', 'hostel_image', 'library_image', 'class_image', 'lab_image']
-            for field in image_fields:
-                if field in request.data:
-                    if request.data[field] is None:
-                        # Clear the image if None is sent
-                        setattr(college, field, None)
-                    elif isinstance(request.data[field], str):
-                        if request.data[field].startswith('/images/'):
-                            # It's an existing image URL, do nothing
-                            pass
-                        else:
-                            # Invalid image data
-                            return Response({'error': f'Invalid image data for {field}'}, status=status.HTTP_400_BAD_REQUEST)
+#     def put(self, request, pk):
+#         college = get_object_or_404(Colleges, pk=pk)
+#         serializer = CollegeSerializer(college, data=request.data, partial=True)
+#         if serializer.is_valid():
+#             # Handle main images
+#             image_fields = ['main_image', 'hostel_image', 'library_image', 'class_image', 'lab_image']
+#             for field in image_fields:
+#                 if field in request.data:
+#                     if request.data[field] is None:
+#                         # Clear the image if None is sent
+#                         setattr(college, field, None)
+#                     elif isinstance(request.data[field], str):
+#                         if request.data[field].startswith('/images/'):
+#                             # It's an existing image URL, do nothing
+#                             pass
+#                         else:
+#                             # Invalid image data
+#                             return Response({'error': f'Invalid image data for {field}'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Handle other fields
-            for field in ['name', 'courses', 'location', 'priority']:
-                if field in request.data:
-                    setattr(college, field, request.data[field])
+#             # Handle other fields
+#             for field in ['name', 'courses', 'location', 'priority']:
+#                 if field in request.data:
+#                     setattr(college, field, request.data[field])
 
-            # Handle other_images
-            if 'other_images' in request.data:
-                # Clear existing other images
-                college.other_images.all().delete()
-                # Add new other images if any
-                for img_data in request.data['other_images']:
-                    if isinstance(img_data['image'], str) and img_data['image'].startswith('/images/'):
-                        # It's an existing image URL, create new OtherImage
-                        OtherImage.objects.create(college=college, image=img_data['image'])
+#             # Handle other_images
+#             if 'other_images' in request.data:
+#                 # Clear existing other images
+#                 college.other_images.all().delete()
+#                 # Add new other images if any
+#                 for img_data in request.data['other_images']:
+#                     if isinstance(img_data['image'], str) and img_data['image'].startswith('/images/'):
+#                         # It's an existing image URL, create new OtherImage
+#                         OtherImage.objects.create(college=college, image=img_data['image'])
 
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#             serializer.save()
+#             return Response(serializer.data)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk):
-        college = get_object_or_404(Colleges, pk=pk)
-        college.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+#     def delete(self, request, pk):
+#         college = get_object_or_404(Colleges, pk=pk)
+#         college.delete()
+#         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 

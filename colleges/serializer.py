@@ -115,19 +115,19 @@ class EditCollegeSerializer(serializers.ModelSerializer):
             ext = format.split('/')[-1]
             return ContentFile(base64.b64decode(imgstr), name=f'{uuid.uuid4()}.{ext}')
         return image_data  # It's either a file or a URL
-
     def update(self, instance, validated_data):
-        image_fields = ['main_image', 'hostel_image', 'library_image', 'class_image', 'lab_image']
-        
-        for attr, value in validated_data.items():
-            if attr in image_fields:
-                if value is not None:
-                    setattr(instance, attr, self.handle_image(value))
-            else:
-                setattr(instance, attr, value)
-        
-        if 'parent_subcategories' in validated_data:
-            instance.parent_subcategories.set(validated_data['parent_subcategories'])
-        
-        instance.save()
-        return instance
+     image_fields = ['main_image', 'hostel_image', 'library_image', 'class_image', 'lab_image']
+     
+     for attr, value in validated_data.items():
+         if attr in image_fields:
+             if value is not None:
+                 setattr(instance, attr, self.handle_image(value))
+         elif attr == 'parent_subcategories':
+             # Ensure that parent_subcategories is a list of IDs, not objects
+             subcategory_ids = [subcat.id for subcat in value]
+             instance.parent_subcategories.set(subcategory_ids)
+         else:
+             setattr(instance, attr, value)
+     
+     instance.save()
+     return instance
