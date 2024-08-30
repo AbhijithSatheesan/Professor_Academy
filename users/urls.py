@@ -25,7 +25,7 @@ urlpatterns = [
     path('userslist', UsersList, name= 'userslist'),
     path('admin-users/<int:user_id>/', AdminEditUserView.as_view(), name='admin-edit-user'),
     path('admin-users/<int:user_id>/update-marked-college/', AdminUpdateMarked.as_view(), name='admin-update-marked-college'),
-    path('admin-users/<int:user_id>/add-marked-college/', AdminAddMarkedCollegeView.as_view(), name='admin-add-marked-college'),
+    # path('admin-users/<int:user_id>/add-marked-college/', AdminAddMarkedCollegeView.as_view(), name='admin-add-marked-college'),
 
 
     # password reset

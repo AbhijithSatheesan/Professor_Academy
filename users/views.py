@@ -1,27 +1,39 @@
+import os
+from dotenv import load_dotenv
+
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.response import Response
-
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import generics, permissions
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-
 from .serializer import *
 from .models import *
-
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
-
 from rest_framework.decorators import api_view
-
 from django.db.models import Q
+
+
+from django.core.mail import send_mail
+from django.conf import settings
+from rest_framework.permissions import AllowAny
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.template.loader import render_to_string
+from django.contrib.auth.tokens import default_token_generator
+from django.urls import reverse
+
+
+from django.core.mail import EmailMultiAlternatives
+from django.utils.html import strip_tags
 
 
 
@@ -77,7 +89,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
         # To confuse if anyone try to #################################
         if is_admin:
-            token['admission_placed'] = 113
+            token['admission_placed'] = 113800
         else:
             token['admission_placed'] = None
         
@@ -266,6 +278,8 @@ class UserRegisterView(APIView):
         else:
             print(serializer.errors)  # For debugging
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        
 # to make it working send user details like below
 
 # {
@@ -324,45 +338,7 @@ class AdminEditUserView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-# UPDATE MARKED COLLEGES (NOT IN USE)
 
-class AdminUpdateMarkedCollegeView(APIView):
-    permission_classes = [IsAdminUser]
-    
-    def post(self, request, user_id):
-        user = get_object_or_404(MyUsers, id=user_id)
-        college_id = request.data.get('college_id')
-        fee = request.data.get('fee')
-        try:
-            marked_college = MarkedColleges.objects.get(student=user, marked_college_id=college_id)
-            marked_college.fee = fee
-            marked_college.save()
-            return Response({'status': 'fee updated'})
-        except MarkedColleges.DoesNotExist:
-            return Response({'status': 'marked college not found'}, status=status.HTTP_404_NOT_FOUND)
-
-
-# ADMIN ADD MARKED COLLEGE (NOT IN USE)
-
-class AdminAddMarkedCollegeView(APIView):
-    permission_classes = [IsAdminUser]
-
-    def post(self, request, user_id):
-        user = get_object_or_404(MyUsers, id=user_id)
-        college_id = request.data.get('college_id')
-        fee = request.data.get('fee')
-        marked_college, created = MarkedColleges.objects.get_or_create(
-            student=user,
-            marked_college_id=college_id,
-            defaults={'fee': fee}
-        )
-        if not created:
-            marked_college.fee = fee
-            marked_college.save()
-        return Response({'status': 'marked college added/updated'})
-    
-
-# UPDATE MARKED (IN USE)
 
 class AdminUpdateMarked(APIView):
     permission_classes = [IsAdminUser]
@@ -396,32 +372,19 @@ class AdminUpdateMarked(APIView):
 
 
 
-from django.shortcuts import get_object_or_404
-from django.core.mail import send_mail
-from django.conf import settings
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import AllowAny
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
-from django.template.loader import render_to_string
-from django.contrib.auth.tokens import default_token_generator
-from django.urls import reverse
-from .models import MyUsers
 
-from django.core.mail import EmailMultiAlternatives
-from django.utils.html import strip_tags
 
 class PasswordResetRequestView(APIView):
     permission_classes = [AllowAny]
+    
 
     def post(self, request):
+        DOMAIN_ADDRESS = os.getenv('DOMAIN_ADDRESS')
         email = request.data.get('email')
         user = get_object_or_404(MyUsers, email=email)
         token = default_token_generator.make_token(user)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
-        reset_url = f"http://localhost:5173/passwordresetconfirm/{uid}/{token}/"
+        reset_url = f"{DOMAIN_ADDRESS}/passwordresetconfirm/{uid}/{token}/"
 
         html_message = render_to_string('users/password_reset_email.html', {
             'user': user,
