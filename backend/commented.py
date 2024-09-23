@@ -256,3 +256,24 @@
 #         },
 #     },
 # ]
+
+
+
+# ip of aws
+
+# PublicIPs: 16.171.43.147    PrivateIPs: 172.31.43.233
+
+
+# second time
+
+# i-0838237a88b29716c (server1)
+# PublicIPs: 16.171.43.147    PrivateIPs: 172.31.43.233
+
+
+# seems like they are same all time
+
+
+# different times different ips
+
+# i-0838237a88b29716c (server1)  
+# PublicIPs: 16.171.145.13    PrivateIPs: 172.31.43.233
