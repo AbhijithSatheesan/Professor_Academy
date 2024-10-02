@@ -91,9 +91,12 @@ DATABASES = {
 # ... (AUTH_PASSWORD_VALIDATORS and Internationalization settings remain unchanged)
 
 STATIC_URL = 'static/'
-MEDIA_URL = '/images/'
+MEDIA_URL = '/media/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 MEDIA_ROOT = 'static/images'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
