@@ -93,7 +93,6 @@ DATABASES = {
 STATIC_URL = 'static/'
 MEDIA_URL = '/media/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-MEDIA_ROOT = 'static/images'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_ROOT = BASE_DIR / 'media'
 
